@@ -92,3 +92,7 @@ To run the tests included with the library:
 ```bash
 cd rust
 cargo test
+
+## Original version
+
+[The original version](https://github.com/alanpost/jbogenturfahi) of this library by Alan Post is written in Scheme and is placed under `/scheme`.
