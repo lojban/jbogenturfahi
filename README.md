@@ -92,6 +92,7 @@ To run the tests included with the library:
 ```bash
 cd rust
 cargo test
+```
 
 ## Original version
 
