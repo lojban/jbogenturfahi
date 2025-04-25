@@ -1,0 +1,1113 @@
+// Translated Lojban Grammar for pest (based on gerna.peg)
+// NOTE: Terminal definitions (BRIVLA, CMENE, cmavo) use structural placeholders.
+//       Final validation against external wordlists happens in Rust code.
+// NOTE: Potential left-recursion issues might need further refinement.
+
+// Placeholder for whitespace handling, including Lojban's '.y'
+WHITESPACE = _{ " " | "\t" | "\n" | "\r" | ".y" }
+
+// Structural placeholders for terminal symbols.
+// Final validation against external wordlists happens in Rust code.
+lojban_char = _{ 'a'..'z' | "'" }
+potential_word = @{ lojban_char+ } // General form for cmavo, brivla (gismu, lujvo, fu'ivla)
+potential_cmene_word = @{ (lojban_char | ASCII_DIGIT)+ } // Allows digits for cmene
+
+BRIVLA = { potential_word }
+CMENE  = { potential_cmene_word }
+
+// Define all specific cmavo rules to use potential_word
+// Validation against cmavo.txt happens in Rust code.
+A = { potential_word }
+BAI = { potential_word }
+BAhE = { potential_word }
+BE = { potential_word }
+BEI = { potential_word }
+BEhO = { potential_word }
+BIhE = { potential_word }
+BIhI = { potential_word }
+BO = { potential_word }
+BOI = { potential_word }
+BU = { potential_word }
+BY = { potential_word }
+CAI = { potential_word }
+CAhA = { potential_word }
+CEI = { potential_word }
+CEhE = { potential_word }
+CO = { potential_word }
+COI = { potential_word }
+CU = { potential_word }
+CUhE = { potential_word }
+DAhO = { potential_word }
+DOI = { potential_word }
+DOhU = { potential_word }
+FA = { potential_word }
+FAhA = { potential_word }
+FAhO = { potential_word }
+FEhE = { potential_word }
+FEhU = { potential_word }
+FIhO = { potential_word }
+FOI = { potential_word }
+FUhA = { potential_word }
+FUhE = { potential_word }
+FUhO = { potential_word }
+GA = { potential_word }
+GAhO = { potential_word }
+GEhU = { potential_word }
+GI = { potential_word }
+GIhA = { potential_word }
+GOI = { potential_word }
+GOhA = { potential_word }
+GUhA = { potential_word }
+I = { potential_word }
+JA = { potential_word }
+JAI = { potential_word }
+JOhI = { potential_word }
+JOI = { potential_word }
+KE = { potential_word }
+KEhE = { potential_word }
+KEI = { potential_word }
+KI = { potential_word }
+KOhA = { potential_word }
+KU = { potential_word }
+KUhE = { potential_word }
+KUhO = { potential_word }
+LA = { potential_word }
+LAU = { potential_word }
+LAhE = { potential_word }
+LE = { potential_word }
+LEhU = { potential_word }
+LI = { potential_word }
+LIhU = { potential_word }
+LOhO = { potential_word }
+LOhU = { potential_word }
+LU = { potential_word }
+LUhU = { potential_word }
+MAI = { potential_word }
+MAhO = { potential_word }
+ME = { potential_word }
+MEhU = { potential_word }
+MOhE = { potential_word }
+MOhI = { potential_word }
+MOI = { potential_word }
+NA = { potential_word }
+NAI = { potential_word }
+NAhE = { potential_word }
+NAhU = { potential_word }
+NIhE = { potential_word }
+NIhO = { potential_word }
+NOI = { potential_word }
+NU = { potential_word }
+NUhA = { potential_word }
+NUhI = { potential_word }
+NUhU = { potential_word }
+PA = { potential_word } // Includes numbers; validation needed in Rust
+PEhE = { potential_word }
+PEhO = { potential_word }
+PU = { potential_word }
+RAhO = { potential_word }
+ROI = { potential_word }
+SA = { potential_word }
+SE = { potential_word }
+SEI = { potential_word }
+SEhU = { potential_word }
+SI = { potential_word }
+SOI_cmavo = { potential_word } // Renamed from SOI to avoid keyword conflict
+SU = { potential_word }
+TAhE = { potential_word }
+TEI = { potential_word }
+TEhU = { potential_word }
+TO = { potential_word }
+TOI = { potential_word }
+TUhE = { potential_word }
+TUhU = { potential_word }
+UI = { potential_word }
+VA = { potential_word }
+VAU = { potential_word }
+VEI = { potential_word }
+VEhA = { potential_word }
+VEhO = { potential_word }
+VIhA = { potential_word }
+VUhO = { potential_word }
+VUhU = { potential_word }
+XI = { potential_word }
+Y = { potential_word }
+ZAhO = { potential_word }
+ZEI = { potential_word }
+ZEhA = { potential_word }
+ZI = { potential_word }
+ZIhE = { potential_word }
+ZO = { potential_word }
+ZOI = { potential_word }
+ZOhU = { potential_word }
+
+// Placeholder for any Lojban word (needs refinement)
+// This is tricky; a real parser might need lexer integration.
+// For now, match any sequence that looks like a word but isn't just whitespace.
+any_word = _{ (!WHITESPACE ~ ANY)+ }
+
+// Helper for optional spaces
+spaces = _{ WHITESPACE* }
+
+// Main grammar rules translated
+word = @{ ('a'..'z' | "'")+ }
+text = { SOI ~ word ~ (spaces ~ word)* ~ spaces? ~ EOI }
+
+
+intro_null = { spaces ~ su_clause* ~ intro_si_clause }
+
+text_part_2 = { ( CMENE_clause+ | indicators? ) ~ free* }
+
+intro_si_clause = { si_clause? ~ SI_clause* }
+
+faho_clause = { ( FAhO_clause ~ (!EOI_marker ~ ANY)* )? } // Use renamed rule
+
+// Please note that the "text-1" item in the text-1 production does
+// *not* match the BNF. This is due to a bug in the BNF.  The change
+// here was made to match grammar.300
+text_1 = { (I_clause ~ ( jek | joik )? ~ ( stag? ~ BO_clause )? ~ free* ~ text_1?)
+         | (NIhO_clause+ ~ free* ~ su_clause* ~ paragraphs?)
+         | paragraphs
+         }
+
+paragraphs = { paragraph ~ ( NIhO_clause+ ~ free* ~ su_clause* ~ paragraphs )? }
+
+paragraph = { ( statement | fragment ) ~ ( I_clause ~ !jek ~ !joik ~ !joik_jek ~ free* ~ ( statement | fragment )? )* }
+
+statement = { statement_1 | (prenex ~ statement) }
+
+statement_1 = { statement_2 ~ ( I_clause ~ joik_jek ~ statement_2? )* }
+
+statement_2 = { statement_3 ~ ( I_clause ~ ( jek | joik )? ~ stag? ~ BO_clause ~ free* ~ statement_2? )? }
+
+statement_3 = { sentence | (tag? ~ TUhE_clause ~ free* ~ text_1 ~ TUhU_clause? ~ free*) }
+
+fragment = { prenex
+           | (terms ~ VAU_clause? ~ free*)
+           | (ek ~ free*)
+           | (gihek ~ free*)
+           | quantifier
+           | (NA_clause ~ !JA_clause ~ free*)
+           | relative_clauses
+           | links
+           | linkargs
+           }
+
+prenex = { terms ~ ZOhU_clause ~ free* }
+
+sentence = { ( terms ~ bridi_tail_sa* ~ CU_clause? ~ free* )? ~ bridi_tail_sa* ~ bridi_tail }
+
+sentence_sa = { sentence_start ~ ( !sentence_start ~ ( sa_word | (SA_clause ~ !sentence_start) ) )* ~ SA_clause ~ &text_1 }
+
+sentence_start = { I_pre | NIhO_pre }
+
+subsentence = { sentence | (prenex ~ subsentence) }
+
+bridi_tail = { bridi_tail_1 ~ ( gihek ~ stag? ~ KE_clause ~ free* ~ bridi_tail ~ KEhE_clause? ~ free* ~ tail_terms )? }
+
+bridi_tail_sa = { bridi_tail_start ~ ( term | (!bridi_tail_start ~ ( sa_word | (SA_clause ~ !bridi_tail_start) )) )* ~ SA_clause ~ &bridi_tail }
+
+// Potential indirect left recursion via bridi_tail. Pest might handle this.
+bridi_tail_start = { ME_clause
+                   | NUhA_clause
+                   | NU_clause
+                   | (NA_clause ~ !KU_clause)
+                   | (NAhE_clause ~ !BO_clause)
+                   | selbri
+                   | (tag ~ bridi_tail_start)
+                   | (KE_clause ~ bridi_tail_start)
+                   | bridi_tail
+                   }
+
+bridi_tail_1 = { bridi_tail_2 ~ ( gihek ~ !( stag? ~ BO_clause ) ~ !( stag? ~ KE_clause ) ~ free* ~ bridi_tail_2 ~ tail_terms )* }
+
+bridi_tail_2 = { bridi_tail_3 ~ ( gihek ~ stag? ~ BO_clause ~ free* ~ bridi_tail_2 ~ tail_terms )? }
+
+bridi_tail_3 = { (selbri ~ tail_terms) | gek_sentence }
+
+gek_sentence = { (gek ~ subsentence ~ gik ~ subsentence ~ tail_terms)
+               | (tag? ~ KE_clause ~ free* ~ gek_sentence ~ KEhE_clause? ~ free*)
+               | (NA_clause ~ free* ~ gek_sentence)
+               }
+
+tail_terms = { terms? ~ VAU_clause? ~ free* }
+
+terms = { terms_1+ }
+
+terms_1 = { terms_2 ~ ( pehe_sa* ~ PEhE_clause ~ free* ~ joik_jek ~ terms_2 )* }
+
+terms_2 = { term ~ ( cehe_sa* ~ CEhE_clause ~ free* ~ term )* }
+
+pehe_sa = { PEhE_clause ~ ( !PEhE_clause ~ ( sa_word | (SA_clause ~ !PEhE_clause) ) )* ~ SA_clause }
+
+cehe_sa = { CEhE_clause ~ ( !CEhE_clause ~ ( sa_word | (SA_clause ~ !CEhE_clause) ) )* ~ SA_clause }
+
+term = { term_sa* ~ term_1 }
+
+term_1 = { sumti
+         | (!gek ~ ( tag | (FA_clause ~ free*) ) ~ ( sumti | KU_clause? ~ free* ))
+         | termset
+         | (NA_clause ~ KU_clause ~ free*)
+         }
+
+term_sa = { term_start ~ ( !term_start ~ ( sa_word | (SA_clause ~ !term_start) ) )* ~ SA_clause ~ &term_1 }
+
+term_start = { term_1
+             | LA_clause
+             | LE_clause
+             | LI_clause
+             | LU_clause
+             | LAhE_clause
+             | (quantifier ~ term_start)
+             | (gek ~ sumti ~ gik)
+             | FA_clause
+             | (tag ~ term_start)
+             }
+
+termset = { gek_termset
+          | (NUhI_clause ~ free* ~ gek ~ terms ~ NUhU_clause? ~ free* ~ gik ~ terms ~ NUhU_clause? ~ free*)
+          | (NUhI_clause ~ free* ~ terms ~ NUhU_clause? ~ free*)
+          }
+
+gek_termset = { gek ~ terms_gik_terms }
+
+// Potential left recursion. Pest might handle direct, but indirect needs care.
+terms_gik_terms = { term ~ ( gik | terms_gik_terms ) ~ term }
+
+sumti = { sumti_1 ~ ( VUhO_clause ~ free* ~ relative_clauses )? }
+
+sumti_1 = { sumti_2 ~ ( joik_ek ~ stag? ~ KE_clause ~ free* ~ sumti ~ KEhE_clause? ~ free* )? }
+
+sumti_2 = { sumti_3 ~ ( joik_ek ~ sumti_3 )* }
+
+sumti_3 = { sumti_4 ~ ( joik_ek ~ stag? ~ BO_clause ~ free* ~ sumti_3 )? }
+
+sumti_4 = { sumti_5 | (gek ~ sumti ~ gik ~ sumti_4) }
+
+sumti_5 = { (quantifier? ~ sumti_6 ~ relative_clauses?)
+          | (quantifier ~ selbri ~ KU_clause? ~ free* ~ relative_clauses?)
+          }
+
+sumti_6 = { (ZO_clause ~ free*)
+          | (ZOI_clause ~ free*)
+          | (LOhU_clause ~ free*)
+          | (lerfu_string ~ !MOI_clause ~ BOI_clause? ~ free*)
+          | (LU_clause ~ text ~ LIhU_clause? ~ free*) // Recursive 'text' here is problematic
+          | ( ( LAhE_clause ~ free* ) | ( NAhE_clause ~ BO_clause ~ free* ) ) ~ relative_clauses? ~ sumti ~ LUhU_clause? ~ free*
+          | (KOhA_clause ~ free*)
+          | (LA_clause ~ free* ~ relative_clauses? ~ CMENE_clause+ ~ free*)
+          | ( ( LA_clause | LE_clause ) ~ free* ~ sumti_tail ~ KU_clause? ~ free* )
+          | (LI_clause ~ free* ~ mex ~ LOhO_clause? ~ free*)
+          }
+
+sumti_tail = { ( ( sumti_6 ~ relative_clauses? )? ~ sumti_tail_1 )
+             | ( relative_clauses ~ sumti_tail_1 )
+             }
+
+sumti_tail_1 = { (quantifier? ~ selbri ~ relative_clauses?)
+               | (quantifier ~ sumti)
+               }
+
+relative_clauses = { relative_clause ~ ( ZIhE_clause ~ free* ~ relative_clause )* }
+
+relative_clause = { relative_clause_sa* ~ relative_clause_1 }
+
+relative_clause_sa = { relative_clause_start ~ ( !relative_clause_start ~ ( sa_word | (SA_clause ~ !relative_clause_start) ) )* ~ SA_clause ~ &relative_clause_1 }
+
+relative_clause_1 = { (GOI_clause ~ free* ~ term ~ GEhU_clause? ~ free*)
+                    | (NOI_clause ~ free* ~ subsentence ~ KUhO_clause? ~ free*)
+                    }
+
+relative_clause_start = { GOI_clause | NOI_clause }
+
+selbri = { tag? ~ selbri_1 }
+
+selbri_1 = { selbri_2 | (NA_clause ~ free* ~ selbri) }
+
+selbri_2 = { selbri_3 ~ ( CO_clause ~ free* ~ selbri_2 )? }
+
+selbri_3 = { selbri_4+ }
+
+selbri_4 = { selbri_5 ~ ( ( joik_jek ~ selbri_5 )
+                       | ( joik ~ stag? ~ KE_clause ~ free* ~ selbri_3 ~ KEhE_clause? ~ free* )
+                       )*
+           }
+
+selbri_5 = { selbri_6 ~ ( ( jek | joik ) ~ stag? ~ BO_clause ~ free* ~ selbri_5 )? }
+
+selbri_6 = { (tanru_unit ~ ( BO_clause ~ free* ~ selbri_6 )?)
+           | (NAhE_clause? ~ free* ~ guhek ~ selbri ~ gik ~ selbri_6)
+           }
+
+
+tanru_unit = { tanru_unit_1 ~ ( CEI_clause ~ free* ~ tanru_unit_1 )* }
+
+tanru_unit_1 = { tanru_unit_2 ~ linkargs? }
+
+// ** zei is part of BRIVLA-clause
+tanru_unit_2 = { (BRIVLA_clause ~ free*)
+               | (GOhA_clause ~ RAhO_clause? ~ free*)
+               | (KE_clause ~ free* ~ selbri_3 ~ KEhE_clause? ~ free*)
+               | (ME_clause ~ free* ~ ( sumti | lerfu_string ) ~ MEhU_clause? ~ free* ~ MOI_clause? ~ free*)
+               | ( ( number | lerfu_string ) ~ MOI_clause ~ free* )
+               | (NUhA_clause ~ free* ~ mex_operator)
+               | (SE_clause ~ free* ~ tanru_unit_2)
+               | (JAI_clause ~ free* ~ tag? ~ tanru_unit_2)
+               | (NAhE_clause ~ free* ~ tanru_unit_2)
+               | (NU_clause ~ NAI_clause? ~ free* ~ ( joik_jek ~ NU_clause ~ NAI_clause? ~ free* )* ~ subsentence ~ KEI_clause? ~ free*)
+               }
+
+linkargs = { linkargs_sa* ~ linkargs_1 }
+
+linkargs_1 = { BE_clause ~ free* ~ term ~ links? ~ BEhO_clause? ~ free* }
+
+linkargs_sa = { linkargs_start ~ ( !linkargs_start ~ ( sa_word | (SA_clause ~ !linkargs_start) ) )* ~ SA_clause ~ &linkargs_1 }
+
+linkargs_start = { BE_clause }
+
+links = { links_sa* ~ links_1 }
+
+links_sa = { links_start ~ ( !links_start ~ ( sa_word | (SA_clause ~ !links_start) ) )* ~ SA_clause ~ &links_1 }
+
+links_1 = { BEI_clause ~ free* ~ term ~ links? }
+
+links_start = { BEI_clause }
+
+quantifier = { (number ~ !MOI_clause ~ BOI_clause? ~ free*)
+             | (VEI_clause ~ free* ~ mex ~ VEhO_clause? ~ free*)
+             }
+
+mex = { mex_sa* ~ mex_0 }
+
+mex_sa = { mex_start ~ ( !mex_start ~ ( sa_word | (SA_clause ~ !mex_start) ) )* ~ SA_clause ~ &mex_0 }
+
+mex_0 = { (mex_1 ~ ( operator ~ mex_1 )*) | rp_clause }
+
+mex_start = { FUhA_clause | PEhO_clause | operand_start }
+
+rp_clause = { FUhA_clause ~ free* ~ rp_expression }
+
+mex_1 = { mex_2 ~ ( BIhE_clause ~ free* ~ operator ~ mex_1 )? }
+
+mex_2 = { operand | mex_forethought }
+
+
+// This is just to make for clearer parse trees
+mex_forethought = { PEhO_clause? ~ free* ~ operator ~ fore_operands ~ KUhE_clause? ~ free* }
+
+fore_operands = { mex_2+ }
+
+// Right recursive version for RP expression
+rp_expression = { operand ~ rp_expression_tail }
+rp_expression_tail = { ( rp_expression ~ operator ~ rp_expression_tail )? }
+
+operator = { operator_sa* ~ operator_0 }
+
+operator_sa = { operator_start ~ ( !operator_start ~ ( sa_word | (SA_clause ~ !operator_start) ) )* ~ SA_clause ~ &operator_0 }
+
+operator_0 = { operator_1 ~ ( ( joik_jek ~ operator_1 )
+                           | ( joik ~ stag? ~ KE_clause ~ free* ~ operator ~ KEhE_clause? ~ free* )
+                           )*
+             }
+
+operator_start = { guhek | KE_clause | (SE_clause? ~ NAhE_clause) | (SE_clause? ~ MAhO_clause) | (SE_clause? ~ VUhU_clause) }
+
+operator_1 = { operator_2
+             | (guhek ~ operator_1 ~ gik ~ operator_2)
+             | (operator_2 ~ ( jek | joik ) ~ stag? ~ BO_clause ~ free* ~ operator_1)
+             }
+
+operator_2 = { mex_operator | (KE_clause ~ free* ~ operator ~ KEhE_clause? ~ free*) }
+
+mex_operator = { (SE_clause ~ free* ~ mex_operator)
+               | (NAhE_clause ~ free* ~ mex_operator)
+               | (MAhO_clause ~ free* ~ mex ~ TEhU_clause? ~ free*)
+               | (NAhU_clause ~ free* ~ selbri ~ TEhU_clause? ~ free*)
+               | (VUhU_clause ~ free*)
+               }
+
+operand = { operand_sa* ~ operand_0 }
+
+operand_0 = { operand_1 ~ ( joik_ek ~ stag? ~ KE_clause ~ free* ~ operand ~ KEhE_clause? ~ free* )? }
+
+operand_sa = { operand_start ~ ( !operand_start ~ ( sa_word | (SA_clause ~ !operand_start) ) )* ~ SA_clause ~ &operand_0 }
+
+operand_start = { quantifier
+                | lerfu_word
+                | NIhE_clause
+                | MOhE_clause
+                | JOhI_clause
+                | gek
+                | LAhE_clause
+                | NAhE_clause
+                }
+
+operand_1 = { operand_2 ~ ( joik_ek ~ operand_2 )* }
+
+operand_2 = { operand_3 ~ ( joik_ek ~ stag? ~ BO_clause ~ free* ~ operand_2 )? }
+
+operand_3 = { quantifier
+            | (lerfu_string ~ !MOI_clause ~ BOI_clause? ~ free*)
+            | (NIhE_clause ~ free* ~ selbri ~ TEhU_clause? ~ free*)
+            | (MOhE_clause ~ free* ~ sumti ~ TEhU_clause? ~ free*)
+            | (JOhI_clause ~ free* ~ mex_2+ ~ TEhU_clause? ~ free*)
+            | (gek ~ operand ~ gik ~ operand_3)
+            | (LAhE_clause ~ free* ~ operand ~ LUhU_clause? ~ free*)
+            | (NAhE_clause ~ BO_clause ~ free* ~ operand ~ LUhU_clause? ~ free*)
+            }
+
+number = { PA_clause ~ ( PA_clause | lerfu_word )* }
+
+lerfu_string = { lerfu_word ~ ( PA_clause | lerfu_word )* }
+
+// ** BU clauses are part of BY-clause
+lerfu_word = { BY_clause | (LAU_clause ~ lerfu_word) | (TEI_clause ~ lerfu_string ~ FOI_clause) }
+
+ek = { NA_clause? ~ SE_clause? ~ A_clause ~ NAI_clause? }
+
+gihek = { gihek_sa* ~ gihek_1 }
+
+gihek_sa = { gihek_1 ~ ( !gihek_1 ~ ( sa_word | (SA_clause ~ !gihek_1) ) )* ~ SA_clause ~ &gihek_1 } // Point lookahead to gihek_1
+
+gihek_1 = { NA_clause? ~ SE_clause? ~ GIhA_clause ~ NAI_clause? }
+
+jek = { NA_clause? ~ SE_clause? ~ JA_clause ~ NAI_clause? }
+
+joik = { (SE_clause? ~ JOI_clause ~ NAI_clause?)
+       | interval
+       | (GAhO_clause ~ interval ~ GAhO_clause)
+       }
+
+interval = { SE_clause? ~ BIhI_clause ~ NAI_clause? }
+
+joik_ek = { joik_ek_sa* ~ joik_ek_1 }
+
+joik_ek_sa = { joik_ek_1 ~ ( !joik_ek_1 ~ ( sa_word | (SA_clause ~ !joik_ek_1) ) )* ~ SA_clause ~ &joik_ek_1 } // Point lookahead to joik_ek_1
+
+joik_ek_1 = { (joik ~ free*) | (ek ~ free*) }
+
+joik_jek = { (joik ~ free*) | (jek ~ free*) }
+
+gek = { (SE_clause? ~ GA_clause ~ NAI_clause? ~ free*)
+      | (joik ~ GI_clause ~ free*)
+      | (stag ~ gik)
+      }
+
+guhek = { SE_clause? ~ GUhA_clause ~ NAI_clause? ~ free* }
+
+gik = { GI_clause ~ NAI_clause? ~ free* }
+
+tag = { tense_modal ~ ( joik_jek ~ tense_modal )* }
+
+stag = { (simple_tense_modal ~ ( ( jek | joik ) ~ simple_tense_modal )*)
+       | (tense_modal ~ ( joik_jek ~ tense_modal )*)
+       }
+
+tense_modal = { (simple_tense_modal ~ free*)
+              | (FIhO_clause ~ free* ~ selbri ~ FEhU_clause? ~ free*)
+              }
+
+simple_tense_modal = { (NAhE_clause? ~ SE_clause? ~ BAI_clause ~ NAI_clause? ~ KI_clause?)
+                     | (NAhE_clause? ~ ( ( ( time ~ space? ) | ( space ~ time? ) ) ~ CAhA_clause
+                                        | ( ( time ~ space? ) | ( space ~ time? ) )
+                                        | CAhA_clause
+                                        ) ~ KI_clause?
+                       )
+                     | KI_clause
+                     | CUhE_clause
+                     }
+
+time = { (ZI_clause ~ time_offset* ~ ( ZEhA_clause ~ ( PU_clause ~ NAI_clause? )? )? ~ interval_property*)
+       | (ZI_clause? ~ time_offset+ ~ ( ZEhA_clause ~ ( PU_clause ~ NAI_clause? )? )? ~ interval_property*)
+       | (ZI_clause? ~ time_offset* ~ ZEhA_clause ~ ( PU_clause ~ NAI_clause? )? ~ interval_property*)
+       | (ZI_clause? ~ time_offset* ~ ( ZEhA_clause ~ ( PU_clause ~ NAI_clause? )? )? ~ interval_property+)
+       }
+
+time_offset = { PU_clause ~ NAI_clause? ~ ZI_clause? }
+
+space = { (VA_clause ~ space_offset* ~ space_interval? ~ ( MOhI_clause ~ space_offset )?)
+        | (VA_clause? ~ space_offset+ ~ space_interval? ~ ( MOhI_clause ~ space_offset )?)
+        | (VA_clause? ~ space_offset* ~ space_interval ~ ( MOhI_clause ~ space_offset )?)
+        | (VA_clause? ~ space_offset* ~ space_interval? ~ MOhI_clause ~ space_offset)
+        }
+
+space_offset = { FAhA_clause ~ NAI_clause? ~ VA_clause? }
+
+space_interval = { ( ( ( VEhA_clause ~ VIhA_clause? ) | VIhA_clause ) ~ ( FAhA_clause ~ NAI_clause? )? ~ space_int_props? )
+                 | space_int_props
+                 }
+
+space_int_props = { ( FEhE_clause ~ interval_property )+ }
+
+interval_property = { (number ~ ROI_clause ~ NAI_clause?)
+                    | (TAhE_clause ~ NAI_clause?)
+                    | (ZAhO_clause ~ NAI_clause?)
+                    }
+
+// Recursive 'text' in free rule is problematic. Replacing with placeholder 'any_text' for now.
+// A real solution might involve limiting recursion depth or restructuring.
+any_text = { (!TOI_clause ~ ANY)* } // Simple placeholder
+free = { (SEI_clause ~ free* ~ ( terms ~ CU_clause? ~ free* )? ~ selbri ~ SEhU_clause?)
+       | (SOI_cmavo_clause ~ free* ~ sumti ~ sumti? ~ SEhU_clause?) // Use renamed rule
+       | (vocative ~ relative_clauses? ~ selbri ~ relative_clauses? ~ DOhU_clause?)
+       | (vocative ~ relative_clauses? ~ CMENE_clause+ ~ free* ~ relative_clauses? ~ DOhU_clause?)
+       | (vocative ~ sumti? ~ DOhU_clause?)
+       | ( ( number | lerfu_string ) ~ MAI_clause )
+       | (TO_clause ~ any_text ~ TOI_clause?) // Using placeholder
+       | xi_clause
+       }
+
+xi_clause = { (XI_clause ~ free* ~ ( number | lerfu_string ) ~ BOI_clause?)
+            | (XI_clause ~ free* ~ VEI_clause ~ free* ~ mex ~ VEhO_clause?)
+            }
+
+vocative = { ( ( COI_clause ~ NAI_clause? )* ~ DOI_clause )
+           | ( ( COI_clause ~ NAI_clause? )+ )
+           }
+
+indicators = { FUhE_clause? ~ indicator+ }
+
+indicator = { ( ( ( UI_clause | CAI_clause ) ~ NAI_clause? )
+              | DAhO_clause
+              | FUhO_clause // Assuming FUhO closes FUhE scope
+              ) ~ !BU_clause
+            }
+
+
+// ****************
+// Magic Words (ZEI/BU handling)
+// ****************
+
+zei_clause = { pre_clause ~ zei_clause_no_pre }
+zei_clause_no_pre = { pre_zei_bu ~ ( zei_tail? ~ bu_tail )* ~ zei_tail ~ post_clause }
+
+bu_clause = { pre_clause ~ bu_clause_no_pre }
+bu_clause_no_pre = { pre_zei_bu ~ ( bu_tail? ~ zei_tail )* ~ bu_tail ~ post_clause }
+
+zei_tail = { ( ZEI_clause ~ any_word ~ spaces )+ }
+bu_tail = { BU_clause+ }
+
+pre_zei_bu = { ( !SI_clause ~ !SA_clause ~ !FAhO_clause ~ any_word_SA ) ~ si_clause? }
+
+// Handling of what can go after a cmavo
+post_clause = { si_clause? ~ !ZEI_clause ~ !BU_clause ~ indicators* }
+
+pre_clause = { BAhE_clause? }
+
+// Placeholder for any word excluding specific cmavo in this context
+any_word_SA = { !SI_clause ~ !SA_clause ~ !FAhO_clause ~ any_word }
+
+// SU clauses
+su_clause = { ( erasable_clause | su_word )* ~ SU_clause }
+
+// Handling of SI
+si_clause = { ( ( erasable_clause | si_word | SA_clause ) ~ si_clause? ~ SI_clause )+ }
+
+erasable_clause = { (bu_clause_no_pre ~ !ZEI_clause ~ !BU_clause)
+                  | (zei_clause_no_pre ~ !ZEI_clause ~ !BU_clause)
+                  }
+
+sa_word = { pre_zei_bu }
+
+si_word = { pre_zei_bu }
+
+su_word = { !NIhO_clause ~ !LU_clause ~ !TUhE_clause ~ !TO_clause ~ !SU_clause ~ !FAhO_clause ~ any_word_SA }
+
+// Clause definitions (Pattern: X_clause = { X_pre ~ X_post } or special handling)
+// Assuming _pre includes the cmavo + spaces, and _post handles trailing indicators/spaces.
+
+BRIVLA_clause = { (BRIVLA_pre ~ BRIVLA_post) | zei_clause }
+BRIVLA_pre    = { pre_clause ~ BRIVLA ~ spaces }
+BRIVLA_post   = { post_clause }
+
+CMENE_clause = { CMENE_pre ~ CMENE_post }
+CMENE_pre    = { pre_clause ~ CMENE ~ spaces }
+CMENE_post   = { post_clause }
+
+A_clause    = { A_pre ~ A_post }
+A_pre       = { pre_clause ~ A ~ spaces }
+A_post      = { post_clause }
+
+BAI_clause  = { BAI_pre ~ BAI_post }
+BAI_pre     = { pre_clause ~ BAI ~ spaces }
+BAI_post    = { post_clause }
+
+BAhE_clause = { ( BAhE_pre ~ BAhE_post )+ }
+BAhE_pre    = { BAhE ~ spaces }
+BAhE_post   = { si_clause? ~ !ZEI_clause ~ !BU_clause }
+
+BE_clause   = { BE_pre ~ BE_post }
+BE_pre      = { pre_clause ~ BE ~ spaces }
+BE_post     = { post_clause }
+
+BEI_clause  = { BEI_pre ~ BEI_post }
+BEI_pre     = { pre_clause ~ BEI ~ spaces }
+BEI_post    = { post_clause }
+
+BEhO_clause = { BEhO_pre ~ BEhO_post }
+BEhO_pre    = { pre_clause ~ BEhO ~ spaces }
+BEhO_post   = { post_clause }
+
+BIhE_clause = { BIhE_pre ~ BIhE_post }
+BIhE_pre    = { pre_clause ~ BIhE ~ spaces }
+BIhE_post   = { post_clause }
+
+BIhI_clause = { BIhI_pre ~ BIhI_post }
+BIhI_pre    = { pre_clause ~ BIhI ~ spaces }
+BIhI_post   = { post_clause }
+
+BO_clause   = { BO_pre ~ BO_post }
+BO_pre      = { pre_clause ~ BO ~ spaces }
+BO_post     = { post_clause }
+
+BOI_clause  = { BOI_pre ~ BOI_post }
+BOI_pre     = { pre_clause ~ BOI ~ spaces }
+BOI_post    = { post_clause }
+
+BU_clause   = { pre_clause ~ BU ~ spaces }
+
+BY_clause   = { (BY_pre ~ BY_post) | bu_clause }
+BY_pre      = { pre_clause ~ BY ~ spaces }
+BY_post     = { post_clause }
+
+CAhA_clause = { CAhA_pre ~ CAhA_post }
+CAhA_pre    = { pre_clause ~ CAhA ~ spaces }
+CAhA_post   = { post_clause }
+
+CAI_clause  = { CAI_pre ~ CAI_post }
+CAI_pre     = { pre_clause ~ CAI ~ spaces }
+CAI_post    = { post_clause }
+
+CEI_clause  = { CEI_pre ~ CEI_post }
+CEI_pre     = { pre_clause ~ CEI ~ spaces }
+CEI_post    = { post_clause }
+
+CEhE_clause = { CEhE_pre ~ CEhE_post }
+CEhE_pre    = { pre_clause ~ CEhE ~ spaces }
+CEhE_post   = { post_clause }
+
+CO_clause   = { CO_pre ~ CO_post }
+CO_pre      = { pre_clause ~ CO ~ spaces }
+CO_post     = { post_clause }
+
+COI_clause  = { COI_pre ~ COI_post }
+COI_pre     = { pre_clause ~ COI ~ spaces }
+COI_post    = { post_clause }
+
+CU_clause   = { CU_pre ~ CU_post }
+CU_pre      = { pre_clause ~ CU ~ spaces }
+CU_post     = { post_clause }
+
+CUhE_clause = { CUhE_pre ~ CUhE_post }
+CUhE_pre    = { pre_clause ~ CUhE ~ spaces }
+CUhE_post   = { post_clause }
+
+DAhO_clause = { DAhO_pre ~ DAhO_post }
+DAhO_pre    = { pre_clause ~ DAhO ~ spaces }
+DAhO_post   = { post_clause }
+
+DOI_clause  = { DOI_pre ~ DOI_post }
+DOI_pre     = { pre_clause ~ DOI ~ spaces }
+DOI_post    = { post_clause }
+
+DOhU_clause = { DOhU_pre ~ DOhU_post }
+DOhU_pre    = { pre_clause ~ DOhU ~ spaces }
+DOhU_post   = { post_clause }
+
+FA_clause   = { FA_pre ~ FA_post }
+FA_pre      = { pre_clause ~ FA ~ spaces }
+FA_post     = { post_clause }
+
+FAhA_clause = { FAhA_pre ~ FAhA_post }
+FAhA_pre    = { pre_clause ~ FAhA ~ spaces }
+FAhA_post   = { post_clause }
+
+FAhO_clause = { pre_clause ~ FAhO ~ spaces }
+
+FEhE_clause = { FEhE_pre ~ FEhE_post }
+FEhE_pre    = { pre_clause ~ FEhE ~ spaces }
+FEhE_post   = { post_clause }
+
+FEhU_clause = { FEhU_pre ~ FEhU_post }
+FEhU_pre    = { pre_clause ~ FEhU ~ spaces }
+FEhU_post   = { post_clause }
+
+FIhO_clause = { FIhO_pre ~ FIhO_post }
+FIhO_pre    = { pre_clause ~ FIhO ~ spaces }
+FIhO_post   = { post_clause }
+
+FOI_clause  = { FOI_pre ~ FOI_post }
+FOI_pre     = { pre_clause ~ FOI ~ spaces }
+FOI_post    = { post_clause }
+
+FUhA_clause = { FUhA_pre ~ FUhA_post }
+FUhA_pre    = { pre_clause ~ FUhA ~ spaces }
+FUhA_post   = { post_clause }
+
+FUhE_clause = { FUhE_pre ~ FUhE_post }
+FUhE_pre    = { pre_clause ~ FUhE ~ spaces }
+FUhE_post   = { !BU_clause ~ spaces ~ !ZEI_clause ~ !BU_clause }
+
+FUhO_clause = { FUhO_pre ~ FUhO_post }
+FUhO_pre    = { pre_clause ~ FUhO ~ spaces }
+FUhO_post   = { post_clause }
+
+GA_clause   = { GA_pre ~ GA_post }
+GA_pre      = { pre_clause ~ GA ~ spaces }
+GA_post     = { post_clause }
+
+GAhO_clause = { GAhO_pre ~ GAhO_post }
+GAhO_pre    = { pre_clause ~ GAhO ~ spaces }
+GAhO_post   = { post_clause }
+
+GEhU_clause = { GEhU_pre ~ GEhU_post }
+GEhU_pre    = { pre_clause ~ GEhU ~ spaces }
+GEhU_post   = { post_clause }
+
+GI_clause   = { GI_pre ~ GI_post }
+GI_pre      = { pre_clause ~ GI ~ spaces }
+GI_post     = { post_clause }
+
+GIhA_clause = { GIhA_pre ~ GIhA_post }
+GIhA_pre    = { pre_clause ~ GIhA ~ spaces }
+GIhA_post   = { post_clause }
+
+GOI_clause  = { GOI_pre ~ GOI_post }
+GOI_pre     = { pre_clause ~ GOI ~ spaces }
+GOI_post    = { post_clause }
+
+GOhA_clause = { GOhA_pre ~ GOhA_post }
+GOhA_pre    = { pre_clause ~ GOhA ~ spaces }
+GOhA_post   = { post_clause }
+
+GUhA_clause = { GUhA_pre ~ GUhA_post }
+GUhA_pre    = { pre_clause ~ GUhA ~ spaces }
+GUhA_post   = { post_clause }
+
+I_clause    = { sentence_sa* ~ I_pre ~ I_post }
+I_pre       = { pre_clause ~ I ~ spaces }
+I_post      = { post_clause }
+
+JA_clause   = { JA_pre ~ JA_post }
+JA_pre      = { pre_clause ~ JA ~ spaces }
+JA_post     = { post_clause }
+
+JAI_clause  = { JAI_pre ~ JAI_post }
+JAI_pre     = { pre_clause ~ JAI ~ spaces }
+JAI_post    = { post_clause }
+
+JOhI_clause = { JOhI_pre ~ JOhI_post }
+JOhI_pre    = { pre_clause ~ JOhI ~ spaces }
+JOhI_post   = { post_clause }
+
+JOI_clause  = { JOI_pre ~ JOI_post }
+JOI_pre     = { pre_clause ~ JOI ~ spaces }
+JOI_post    = { post_clause }
+
+KE_clause   = { KE_pre ~ KE_post }
+KE_pre      = { pre_clause ~ KE ~ spaces }
+KE_post     = { post_clause }
+
+KEhE_clause = { KEhE_pre ~ KEhE_post }
+KEhE_pre    = { pre_clause ~ KEhE ~ spaces }
+KEhE_post   = { post_clause }
+
+KEI_clause  = { KEI_pre ~ KEI_post }
+KEI_pre     = { pre_clause ~ KEI ~ spaces }
+KEI_post    = { post_clause }
+
+KI_clause   = { KI_pre ~ KI_post }
+KI_pre      = { pre_clause ~ KI ~ spaces }
+KI_post     = { post_clause }
+
+KOhA_clause = { KOhA_pre ~ KOhA_post }
+KOhA_pre    = { pre_clause ~ KOhA ~ spaces }
+KOhA_post   = { post_clause }
+
+KU_clause   = { KU_pre ~ KU_post }
+KU_pre      = { pre_clause ~ KU ~ spaces }
+KU_post     = { post_clause }
+
+KUhE_clause = { KUhE_pre ~ KUhE_post }
+KUhE_pre    = { pre_clause ~ KUhE ~ spaces }
+KUhE_post   = { post_clause }
+
+KUhO_clause = { KUhO_pre ~ KUhO_post }
+KUhO_pre    = { pre_clause ~ KUhO ~ spaces }
+KUhO_post   = { post_clause }
+
+LA_clause   = { LA_pre ~ LA_post }
+LA_pre      = { pre_clause ~ LA ~ spaces }
+LA_post     = { post_clause }
+
+LAU_clause  = { LAU_pre ~ LAU_post }
+LAU_pre     = { pre_clause ~ LAU ~ spaces }
+LAU_post    = { post_clause }
+
+LAhE_clause = { LAhE_pre ~ LAhE_post }
+LAhE_pre    = { pre_clause ~ LAhE ~ spaces }
+LAhE_post   = { post_clause }
+
+LE_clause   = { LE_pre ~ LE_post }
+LE_pre      = { pre_clause ~ LE ~ spaces }
+LE_post     = { post_clause }
+
+LEhU_clause = { LEhU_pre }
+LEhU_pre    = { pre_clause ~ LEhU ~ spaces }
+
+LI_clause   = { LI_pre ~ LI_post }
+LI_pre      = { pre_clause ~ LI ~ spaces }
+LI_post     = { post_clause }
+
+LIhU_clause = { LIhU_pre ~ LIhU_post }
+LIhU_pre    = { pre_clause ~ LIhU ~ spaces }
+LIhU_post   = { post_clause }
+
+LOhO_clause = { LOhO_pre ~ LOhO_post }
+LOhO_pre    = { pre_clause ~ LOhO ~ spaces }
+LOhO_post   = { post_clause }
+
+// LOhU needs special handling for the quoted text
+LOhU_clause = { LOhU_pre ~ LOhU_post }
+LOhU_pre    = { pre_clause ~ LOhU ~ spaces ~ LOhU_content? ~ LEhU_clause }
+LOhU_content = { (!LEhU_clause ~ any_word ~ spaces)+ } // Capture content until LEhU
+LOhU_post   = { post_clause }
+
+LU_clause   = { LU_pre ~ LU_post }
+LU_pre      = { pre_clause ~ LU ~ spaces }
+LU_post     = { post_clause }
+
+LUhU_clause = { LUhU_pre ~ LUhU_post }
+LUhU_pre    = { pre_clause ~ LUhU ~ spaces }
+LUhU_post   = { post_clause }
+
+MAhO_clause = { MAhO_pre ~ MAhO_post }
+MAhO_pre    = { pre_clause ~ MAhO ~ spaces }
+MAhO_post   = { post_clause }
+
+MAI_clause  = { MAI_pre ~ MAI_post }
+MAI_pre     = { pre_clause ~ MAI ~ spaces }
+MAI_post    = { post_clause }
+
+ME_clause   = { ME_pre ~ ME_post }
+ME_pre      = { pre_clause ~ ME ~ spaces }
+ME_post     = { post_clause }
+
+MEhU_clause = { MEhU_pre ~ MEhU_post }
+MEhU_pre    = { pre_clause ~ MEhU ~ spaces }
+MEhU_post   = { post_clause }
+
+MOhE_clause = { MOhE_pre ~ MOhE_post }
+MOhE_pre    = { pre_clause ~ MOhE ~ spaces }
+MOhE_post   = { post_clause }
+
+MOhI_clause = { MOhI_pre ~ MOhI_post }
+MOhI_pre    = { pre_clause ~ MOhI ~ spaces }
+MOhI_post   = { post_clause }
+
+MOI_clause  = { MOI_pre ~ MOI_post }
+MOI_pre     = { pre_clause ~ MOI ~ spaces }
+MOI_post    = { post_clause }
+
+NA_clause   = { NA_pre ~ NA_post }
+NA_pre      = { pre_clause ~ NA ~ spaces }
+NA_post     = { post_clause }
+
+NAI_clause  = { NAI_pre ~ NAI_post }
+NAI_pre     = { pre_clause ~ NAI ~ spaces }
+NAI_post    = { post_clause }
+
+NAhE_clause = { NAhE_pre ~ NAhE_post }
+NAhE_pre    = { pre_clause ~ NAhE ~ spaces }
+NAhE_post   = { post_clause }
+
+NAhU_clause = { NAhU_pre ~ NAhU_post }
+NAhU_pre    = { pre_clause ~ NAhU ~ spaces }
+NAhU_post   = { post_clause }
+
+NIhE_clause = { NIhE_pre ~ NIhE_post }
+NIhE_pre    = { pre_clause ~ NIhE ~ spaces }
+NIhE_post   = { post_clause }
+
+NIhO_clause = { sentence_sa* ~ NIhO_pre ~ NIhO_post }
+NIhO_pre    = { pre_clause ~ NIhO ~ spaces }
+NIhO_post   = { su_clause* ~ post_clause }
+
+NOI_clause  = { NOI_pre ~ NOI_post }
+NOI_pre     = { pre_clause ~ NOI ~ spaces }
+NOI_post    = { post_clause }
+
+NU_clause   = { NU_pre ~ NU_post }
+NU_pre      = { pre_clause ~ NU ~ spaces }
+NU_post     = { post_clause }
+
+NUhA_clause = { NUhA_pre ~ NUhA_post }
+NUhA_pre    = { pre_clause ~ NUhA ~ spaces }
+NUhA_post   = { post_clause }
+
+NUhI_clause = { NUhI_pre ~ NUhI_post }
+NUhI_pre    = { pre_clause ~ NUhI ~ spaces }
+NUhI_post   = { post_clause }
+
+NUhU_clause = { NUhU_pre ~ NUhU_post }
+NUhU_pre    = { pre_clause ~ NUhU ~ spaces }
+NUhU_post   = { post_clause }
+
+PA_clause   = { PA_pre ~ PA_post }
+PA_pre      = { pre_clause ~ PA ~ spaces }
+PA_post     = { post_clause }
+
+PEhE_clause = { PEhE_pre ~ PEhE_post }
+PEhE_pre    = { pre_clause ~ PEhE ~ spaces }
+PEhE_post   = { post_clause }
+
+PEhO_clause = { PEhO_pre ~ PEhO_post }
+PEhO_pre    = { pre_clause ~ PEhO ~ spaces }
+PEhO_post   = { post_clause }
+
+PU_clause   = { PU_pre ~ PU_post }
+PU_pre      = { pre_clause ~ PU ~ spaces }
+PU_post     = { post_clause }
+
+RAhO_clause = { RAhO_pre ~ RAhO_post }
+RAhO_pre    = { pre_clause ~ RAhO ~ spaces }
+RAhO_post   = { post_clause }
+
+ROI_clause  = { ROI_pre ~ ROI_post }
+ROI_pre     = { pre_clause ~ ROI ~ spaces }
+ROI_post    = { post_clause }
+
+SA_clause   = { SA_pre }
+SA_pre      = { pre_clause ~ SA ~ spaces }
+
+SE_clause   = { SE_pre ~ SE_post }
+SE_pre      = { pre_clause ~ SE ~ spaces }
+SE_post     = { post_clause }
+
+SEI_clause  = { SEI_pre ~ SEI_post }
+SEI_pre     = { pre_clause ~ SEI ~ spaces }
+SEI_post    = { post_clause }
+
+SEhU_clause = { SEhU_pre ~ SEhU_post }
+SEhU_pre    = { pre_clause ~ SEhU ~ spaces }
+SEhU_post   = { post_clause }
+
+SI_clause   = { SI ~ spaces }
+
+SOI_cmavo_clause  = { SOI_cmavo_pre ~ SOI_cmavo_post } // Renamed from SOI_clause
+SOI_cmavo_pre     = { pre_clause ~ SOI_cmavo ~ spaces }      // Rule SOI_cmavo still uses potential_word
+SOI_cmavo_post    = { post_clause }
+
+SU_clause   = { SU_pre ~ SU_post }
+SU_pre      = { pre_clause ~ SU ~ spaces }
+SU_post     = { post_clause }
+
+TAhE_clause = { TAhE_pre ~ TAhE_post }
+TAhE_pre    = { pre_clause ~ TAhE ~ spaces }
+TAhE_post   = { post_clause }
+
+TEhU_clause = { TEhU_pre ~ TEhU_post }
+TEhU_pre    = { pre_clause ~ TEhU ~ spaces }
+TEhU_post   = { post_clause }
+
+TEI_clause  = { TEI_pre ~ TEI_post }
+TEI_pre     = { pre_clause ~ TEI ~ spaces }
+TEI_post    = { post_clause }
+
+TO_clause   = { TO_pre ~ TO_post }
+TO_pre      = { pre_clause ~ TO ~ spaces }
+TO_post     = { post_clause }
+
+TOI_clause  = { TOI_pre ~ TOI_post }
+TOI_pre     = { pre_clause ~ TOI ~ spaces }
+TOI_post    = { post_clause }
+
+TUhE_clause = { TUhE_pre ~ TUhE_post }
+TUhE_pre    = { pre_clause ~ TUhE ~ spaces }
+TUhE_post   = { su_clause* ~ post_clause }
+
+TUhU_clause = { TUhU_pre ~ TUhU_post }
+TUhU_pre    = { pre_clause ~ TUhU ~ spaces }
+TUhU_post   = { post_clause }
+
+UI_clause   = { UI_pre ~ UI_post }
+UI_pre      = { pre_clause ~ UI ~ spaces }
+UI_post     = { post_clause }
+
+VA_clause   = { VA_pre ~ VA_post }
+VA_pre      = { pre_clause ~ VA ~ spaces }
+VA_post     = { post_clause }
+
+VAU_clause  = { VAU_pre ~ VAU_post }
+VAU_pre     = { pre_clause ~ VAU ~ spaces }
+VAU_post    = { post_clause }
+
+VEI_clause  = { VEI_pre ~ VEI_post }
+VEI_pre     = { pre_clause ~ VEI ~ spaces }
+VEI_post    = { post_clause }
+
+VEhO_clause = { VEhO_pre ~ VEhO_post }
+VEhO_pre    = { pre_clause ~ VEhO ~ spaces }
+VEhO_post   = { post_clause }
+
+VUhU_clause = { VUhU_pre ~ VUhU_post }
+VUhU_pre    = { pre_clause ~ VUhU ~ spaces }
+VUhU_post   = { post_clause }
+
+VEhA_clause = { VEhA_pre ~ VEhA_post }
+VEhA_pre    = { pre_clause ~ VEhA ~ spaces }
+VEhA_post   = { post_clause }
+
+VIhA_clause = { VIhA_pre ~ VIhA_post }
+VIhA_pre    = { pre_clause ~ VIhA ~ spaces }
+VIhA_post   = { post_clause }
+
+VUhO_clause = { VUhO_pre ~ VUhO_post }
+VUhO_pre    = { pre_clause ~ VUhO ~ spaces }
+VUhO_post   = { post_clause }
+
+XI_clause   = { XI_pre ~ XI_post }
+XI_pre      = { pre_clause ~ XI ~ spaces }
+XI_post     = { post_clause }
+
+// Y_clause = { Y ~ spaces } // Assuming Y is handled like other cmavo
+
+ZAhO_clause = { ZAhO_pre ~ ZAhO_post }
+ZAhO_pre    = { pre_clause ~ ZAhO ~ spaces }
+ZAhO_post   = { post_clause }
+
+ZEhA_clause = { ZEhA_pre ~ ZEhA_post }
+ZEhA_pre    = { pre_clause ~ ZEhA ~ spaces }
+ZEhA_post   = { post_clause }
+
+ZEI_clause  = { ZEI_pre }
+ZEI_pre     = { pre_clause ~ ZEI ~ spaces }
+
+ZI_clause   = { ZI_pre ~ ZI_post }
+ZI_pre      = { pre_clause ~ ZI ~ spaces }
+ZI_post     = { post_clause }
+
+ZIhE_clause = { ZIhE_pre ~ ZIhE_post }
+ZIhE_pre    = { pre_clause ~ ZIhE ~ spaces }
+ZIhE_post   = { post_clause }
+
+// ZO needs special handling for the quoted word
+ZO_clause   = { ZO_pre ~ ZO_post }
+ZO_pre      = { pre_clause ~ ZO ~ spaces ~ any_word ~ spaces }
+ZO_post     = { post_clause }
+
+// ZOI needs special handling for delimited quote
+// Using atomic rule with delimiter capture. PUSH/POP might be needed for robustness.
+zoi_delimiter = { PEEK ~ any_word ~ spaces } // Peek at the delimiter
+ZOI_clause  = { ZOI_pre ~ ZOI_post }
+ZOI_pre     = @{ pre_clause ~ ZOI ~ spaces ~ zoi_delimiter ~ any_word ~ spaces ~ (!POP ~ ANY)* ~ POP ~ any_word ~ spaces } // Capture content between delimiters
+ZOI_post    = { post_clause }
+
+ZOhU_clause = { ZOhU_pre ~ ZOhU_post }
+ZOhU_pre    = { pre_clause ~ ZOhU ~ spaces }
+ZOhU_post   = { post_clause }
+
+// Define EOI marker if not built-in implicitly by SOI_cmavo
+EOI_marker = { !ANY } // Renamed from EOI
+
+// Define ASCII_ALPHANUMERIC if not built-in
+ASCII_ALPHANUMERIC = _{ 'a'..'z' | 'A'..'Z' | '0'..'9' | "'" } // Added apostrophe for Lojban

@@ -1,0 +1,265 @@
+;;;;
+;;;; jbogenturfahi - lo lojbo ke pe'a jajgau ratcu ke'e genturfa'i
+;;;;            `-> A Lojban grammar parser
+;;;;
+;;;; Copyright (c) 2010 ".alyn.post." <alyn.post@lodockikumazvati.org>
+;;;;
+;;;; Permission to use, copy, modify, and/or distribute this software for any
+;;;; purpose with or without fee is hereby granted, provided that the above
+;;;; copyright notice and this permission notice appear in all copies.
+;;;;
+;;;; THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+;;;; WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+;;;; MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+;;;; ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+;;;; WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+;;;; ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+;;;; OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+;;;;
+
+(use genturfahi)
+(use genturfahi-peg)
+(use make)
+(use extras)
+
+(include "version.scm")
+(include "chicken-conf.scm")
+
+(define db-path
+        (make-pathname `(,(chicken-home) "jbogenturfahi")
+                         jbogenturfahi-version))
+(define db-file
+        (make-pathname db-path "jbogenturfahi.db"))
+
+       ; jbogenturfahi executable
+       ;
+(make (("jbogenturfahi" ("chicken-cmd.scm"
+                         "chicken-conf.scm"
+                         "chicken-declare.scm"
+                         "license.scm"
+                         "main-srfi-37.scm"
+                         "jbogenturfahi.meta"
+                         "jbogenturfahi.setup"
+                         (dynld-name "jbogenturfahi")
+                         (dynld-name "jbogerna")
+                         (dynld-name "jbogensamselpla"))
+       (compile ,@jbogenturfahi-cscflags
+                -o "jbogenturfahi"
+                "chicken-cmd.scm"))
+
+       ; dynamic library (jbogensamselpla)
+       ;
+       ((dynld-name "jbogensamselpla") ("chicken-ext-jbogensamselpla.scm"
+                                        "chicken-conf.scm"
+                                        "chicken-declare.scm"
+                                        "c0re.scm"
+                                        "samselpla.scm"
+                                        "jbogenturfahi.meta"
+                                        "jbogenturfahi.setup")
+       (begin (compile -s
+                       ,@jbogenturfahi-cscflags
+                       -j jbogensamselpla
+                       -o ,(dynld-name "jbogensamselpla")
+                       chicken-ext-jbogensamselpla.scm)
+              (compile -s
+                       ,@jbogenturfahi-cscflags
+                       -o ,(dynld-name "jbogensamselpla.import")
+                       jbogensamselpla.import.scm)))
+
+       ; dynamic library (jbogerna)
+       ;
+       ((dynld-name "jbogerna") ("chicken-ext-jbogerna.scm"
+                                 "chicken-conf.scm"
+                                 "chicken-declare.scm"
+                                 "jbogerna.scm"
+                                 "jbogenturfahi.meta"
+                                 "jbogenturfahi.setup"
+                                 (dynld-name "jbogensamselpla"))
+       (begin (compile -s
+                       ,@jbogenturfahi-cscflags
+                       -j jbogerna
+                       -o ,(dynld-name "jbogerna")
+                       chicken-ext-jbogerna.scm)
+              (compile -s
+                       ,@jbogenturfahi-cscflags
+                       -o ,(dynld-name "jbogerna.import")
+                       jbogerna.import.scm)))
+
+       ; dynamic library (jbogenturfahi)
+       ;
+       ((dynld-name "jbogenturfahi") ("chicken-ext.scm"
+                                      "chicken-conf.scm"
+                                      "chicken-declare.scm"
+                                      "jbogenturfahi.scm"
+                                      "c0re.scm"
+                                      "sql.scm"
+                                      "db.scm"
+                                      "version.scm"
+                                      "path.scm"
+                                      "jbogenturfahi.meta"
+                                      "jbogenturfahi.setup"
+                                      (dynld-name "jbogerna"))
+       (begin (compile -s
+                       ,@jbogenturfahi-cscflags
+                       -j jbogenturfahi
+                       -o ,(dynld-name "jbogenturfahi")
+                       chicken-ext.scm)
+              (compile -s
+                       ,@jbogenturfahi-cscflags
+                       -o ,(dynld-name "jbogenturfahi.import")
+                       jbogenturfahi.import.scm)))
+
+       ; static library (jbogensamselpla)
+       ;
+       ("jbogensamselpla.o" ("chicken-ext-jbogensamselpla.scm"
+                             "chicken-conf.scm"
+                             "chicken-declare.scm"
+                             "c0re.scm"
+                             "samselpla.scm"
+                             "jbogenturfahi.meta"
+                             "jbogenturfahi.setup")
+       (compile -c
+                ,@jbogenturfahi-cscflags
+                -unit jbogensamselpla
+                -o "jbogensamselpla.o"
+                "chicken-ext-jbogensamselpla.scm"))
+
+       ; static library (jbogerna)
+       ;
+       ("jbogerna.o" ("chicken-ext-jbogerna.scm"
+                      "chicken-conf.scm"
+                      "chicken-declare.scm"
+                      "jbogerna.scm"
+                      "jbogenturfahi.meta"
+                      "jbogenturfahi.setup")
+       (compile -c
+                ,@jbogenturfahi-cscflags
+                -unit jbogerna
+                -o "jbogerna.o"
+                "chicken-ext-jbogerna.scm"))
+
+       ; static library (jbogenturfahi)
+       ;
+       ("jbogenturfahi.o" ("chicken-ext.scm"
+                           "chicken-conf.scm"
+                           "chicken-declare.scm"
+                           "jbogenturfahi.scm"
+                           "c0re.scm"
+                           "sql.scm"
+                           "db.scm"
+                           "version.scm"
+                           "path.scm"
+                           "jbogenturfahi.meta"
+                           "jbogenturfahi.setup")
+       (compile -c
+                ,@jbogenturfahi-cscflags
+                -unit jbogenturfahi
+                -o "jbogenturfahi.o"
+                "chicken-ext.scm"))
+
+       ("jbogenturfahi.db" ("chicken-db.scm"
+                            "c0re.scm"
+                            "sql.scm"
+                            "db.scm"
+                            "wordlists/cmavo.scm"
+                            "wordlists/gismu.scm"
+                            "wordlists/rafsi.scm"
+                            "wordlists/cmavo.txt"
+                            "wordlists/gismu.txt"
+                            "wordlists/rafsi.txt"
+                            "jbogenturfahi.meta"
+                            "jbogenturfahi.setup")
+         (load "chicken-db.scm"))
+
+       ("path.scm" ("jbogenturfahi.meta"
+                    "jbogenturfahi.setup")
+         (call-with-output-file "path.scm"
+           (lambda (port)
+             (write `(define jbogenturfahi-db-file
+                             (make-parameter ,db-file))
+                    port))))
+
+       ("jbogerna.scm" ("gerna.peg"
+                        "rafske_gumgau.peg"
+                        "rafske.peg"
+                        "tamgau.peg"
+                        "jbogenturfahi.meta"
+                        "jbogenturfahi.setup")
+         (call-with-output-file "jbogerna.scm"
+           (lambda (port)
+             (let ((lefpoi (string-append (read-all "tamgau.peg")
+                                          (read-all "gerna.peg")
+                                          (read-all "rafske_gumgau.peg")
+                                          (read-all "rafske.peg"))))
+               (for-each (lambda (form) (pretty-print form port))
+                         (genturfahi-peg lefpoi))))))
+       ("license.scm" ("LICENSE")
+        (call-with-output-file "license.scm"
+          (lambda (port)
+            (write
+              `(define jbogenturfahi-license ,(read-all "LICENSE"))
+              port)))))
+
+      `("jbogenturfahi.db"
+        "jbogenturfahi"
+        ,(dynld-name "jbogensamselpla")
+        ,(dynld-name "jbogerna")
+        ,(dynld-name "jbogenturfahi")
+        "jbogensamselpla.o"
+        "jbogerna.o"
+        "jbogenturfahi.o"))
+
+(install-extension
+  ; lo cmene vi pagbu
+  'jbogensamselpla
+
+  ; lo datnyvei vi pagbu
+  `("jbogensamselpla.o"
+    ,(dynld-name "jbogensamselpla")
+    ,(dynld-name "jbogensamselpla.import"))
+
+  ; lo se ckaji vi pagbu
+  `((static "jbogensamselpla.o")
+    (version ,jbogenturfahi-version)))
+
+(install-extension
+  ; lo cmene vi pagbu
+  'jbogerna
+
+  ; lo datnyvei vi pagbu
+  `("jbogerna.o"
+    ,(dynld-name "jbogerna")
+    ,(dynld-name "jbogerna.import"))
+
+  ; lo se ckaji vi pagbu
+  `((static "jbogerna.o")
+    (version ,jbogenturfahi-version)))
+
+(install-extension
+  ; lo cmene vi pagbu
+  'jbogenturfahi
+
+  ; lo datnyvei vi pagbu
+  `("jbogenturfahi.o"
+    ,(dynld-name "jbogenturfahi")
+    ,(dynld-name "jbogenturfahi.import"))
+
+  ; lo se ckaji vi pagbu
+  `((static "jbogenturfahi.o")
+    (version ,jbogenturfahi-version)))
+
+(install-program
+  ; lo cmene vi pagbu
+  'jbogenturfahi-cmd
+
+  ; lo datnyvei vi pagbu
+  `("jbogenturfahi")
+
+  ; lo se ckaji vi pagbu
+  `((version ,jbogenturfahi-version)))
+
+(if (not (setup-install-mode))
+  (exit))
+
+(create-directory/parents db-path)
+(copy-file "jbogenturfahi.db" db-path)
