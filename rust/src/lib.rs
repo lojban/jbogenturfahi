@@ -16,18 +16,18 @@ use std::fmt;
 // --- Wordlist Loading ---
 
 static CMAVO_SET: Lazy<HashSet<String>> = Lazy::new(|| {
-    load_wordlist("../jbogenturfahi/wordlists/cmavo.txt").expect("Failed to load cmavo wordlist")
+    load_wordlist("../scheme/wordlists/cmavo.txt").expect("Failed to load cmavo wordlist")
 });
 
 static GISMU_SET: Lazy<HashSet<String>> = Lazy::new(|| {
-    load_wordlist("../jbogenturfahi/wordlists/gismu.txt").expect("Failed to load gismu wordlist")
+    load_wordlist("../scheme/wordlists/gismu.txt").expect("Failed to load gismu wordlist")
 });
 
 // Note: rafsi.txt is loaded but not used in validation yet, as the grammar
 // doesn't directly expose rafsi in a way that's easily validated here.
 // Lujvo construction logic would typically handle rafsi validation.
 static _RAFSI_SET: Lazy<HashSet<String>> = Lazy::new(|| {
-    load_wordlist("../jbogenturfahi/wordlists/rafsi.txt").expect("Failed to load rafsi wordlist")
+    load_wordlist("../scheme/wordlists/rafsi.txt").expect("Failed to load rafsi wordlist")
 });
 
 
